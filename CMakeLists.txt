@@ -35,7 +35,19 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(alcohol-guard alcohol-guard.c )
+add_executable(alcohol-guard
+        alcohol-guard.c
+        src/matriz-led.c
+        src/led-rgb.c
+        src/botao.c
+        src/animacoes.c
+        src/adc.c
+        src/display.c
+        src/entradas.c
+        src/leds.c
+        src/pwm.c
+        src/ssd1306.c
+        )
 
 pico_set_program_name(alcohol-guard "alcohol-guard")
 pico_set_program_version(alcohol-guard "0.1")
@@ -45,8 +57,18 @@ pico_enable_stdio_uart(alcohol-guard 1)
 pico_enable_stdio_usb(alcohol-guard 1)
 
 # Add the standard library to the build
+pico_generate_pio_header(alcohol-guard ${CMAKE_CURRENT_LIST_DIR}/alcohol_guard.pio)
+
+# Add the standard library to the build
 target_link_libraries(alcohol-guard
-        pico_stdlib)
+        pico_stdlib
+        hardware_pio
+        hardware_adc
+        pico_bootrom
+        hardware_spi
+        hardware_i2c
+        hardware_pwm
+        )
 
 # Add the standard include files to the build
 target_include_directories(alcohol-guard PRIVATE

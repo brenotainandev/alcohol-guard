@@ -5,6 +5,7 @@
 #define I2C_SCL 15
 #define ENDERECO_DISPLAY 0x3C
 
+// Definição da variável global "display"
 ssd1306_t display;
 
 void inicializar_display() {
@@ -22,7 +23,6 @@ void inicializar_display() {
 
 void atualizar_display(uint16_t adc_x, uint16_t adc_y, bool estado_borda) {
     // Mapeamento dos valores ADC para a posição do quadrado de 8x8 pixels.
-    // Ajuste os multiplicadores se necessário para seu mapeamento.
     uint8_t pos_x = (uint8_t)(adc_x * 0.0294);
     uint8_t pos_y = (uint8_t)((64 - 8) - (adc_y * 0.0137));
     
@@ -31,11 +31,9 @@ void atualizar_display(uint16_t adc_x, uint16_t adc_y, bool estado_borda) {
     
     // Desenha a borda com estilo conforme o estado_borda
     if (estado_borda) {
-        // Borda com dois retângulos (borda dupla)
         ssd1306_rect(&display, 1, 1, 126, 62, 1, 1); // Borda externa
         ssd1306_rect(&display, 4, 4, 120, 56, 0, 1); // Borda interna "vazia"
     } else {
-        // Borda simples
         ssd1306_rect(&display, 3, 3, 122, 58, 1, 0);
     }
     

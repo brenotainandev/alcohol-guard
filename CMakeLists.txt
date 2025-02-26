@@ -47,6 +47,7 @@ add_executable(alcohol-guard
         src/leds.c
         src/pwm.c
         src/ssd1306.c
+        src/buzzer.c
         )
 
 pico_set_program_name(alcohol-guard "alcohol-guard")

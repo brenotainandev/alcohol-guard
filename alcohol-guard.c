@@ -3,7 +3,6 @@
 #include "pico/stdlib.h"
 #include "./includes/adc.h"
 #include "./includes/display.h"
-#include "./includes/pwm.h"
 #include "./includes/entradas.h"
 #include "./includes/animacoes.h"
 #include "./includes/matriz-led.h"
@@ -49,7 +48,6 @@ int main() {
     inicializar_pinos();
     init_buzzer();
     inicializar_adc();
-    inicializar_pwm();
     inicializar_display();
 
     // Inicializa Matriz de LEDs WS2812 via PIO
@@ -132,11 +130,9 @@ int main() {
         if (contagem_alcool > contagem_sem_alcool) {  
             // Se houver mais leituras indicando álcool do que sem álcool
             ssd1306_draw_string(&display, "Alcool detectado!", 0, 10);
-            alterar_estado_pwm(false);
             exibir_letra_x(pio, sm);
         } else {
             ssd1306_draw_string(&display, "Sem alcool.", 0, 10);
-            alterar_estado_pwm(true);
             exibir_letra_o(pio, sm);
         }
         ssd1306_send_data(&display);

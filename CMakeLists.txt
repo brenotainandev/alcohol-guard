@@ -38,14 +38,10 @@ pico_sdk_init()
 add_executable(alcohol-guard
         alcohol-guard.c
         src/matriz-led.c
-        src/led-rgb.c
-        src/botao.c
         src/animacoes.c
         src/adc.c
         src/display.c
         src/entradas.c
-        src/leds.c
-        src/pwm.c
         src/ssd1306.c
         src/buzzer.c
         )

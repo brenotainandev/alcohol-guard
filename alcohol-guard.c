@@ -7,6 +7,7 @@
 #include "./includes/entradas.h"
 #include "./includes/animacoes.h"
 #include "./includes/matriz-led.h"
+#include "./includes/buzzer.h"
 #include "hardware/clocks.h"
 #include "hardware/pio.h"
 #include "alcohol_guard.pio.h"
@@ -25,16 +26,14 @@ void mostrar_mensagem_inicial() {
     sleep_ms(3000);  // Tempo para visualização inicial
 }
 
-// Função para exibir a tela inicial com o cronômetro
-// O cronômetro agora aparece na linha 32 e está melhor posicionado.
+// Função para exibir a tela inicial com o cronômetro.
+// O texto "Nova leitura:" é exibido na linha 20 e o cronômetro, na linha 32.
 void mostrar_tela_inicial_com_contador(int segundos_iniciais) {
     for (int i = segundos_iniciais; i > 0; i--) {
         ssd1306_fill(&display, false);
         ssd1306_draw_string(&display, "Alcohol Guard", 0, 0);
         ssd1306_draw_string(&display, "Leitura: 10s", 0, 10);
         ssd1306_draw_string(&display, "Nova leitura:", 0, 20);
-        
-        // Exibe o cronômetro na linha 32 para maior destaque
         char countdown[20];
         sprintf(countdown, "%ds", i);
         ssd1306_draw_string(&display, countdown, 40, 32);
@@ -48,10 +47,11 @@ int main() {
     
     // Inicializa os módulos
     inicializar_pinos();     // Inicializa as entradas (ex.: botão A)
+    init_buzzer();           // Inicializa o buzzer (configura o pino para PWM)
     inicializar_adc();       // Configura os pinos ADC (GP27 para eixo X e GP26 para eixo Y)
     inicializar_pwm();       // Inicializa o PWM para controle dos LEDs
     inicializar_display();   // Inicializa o display OLED
-
+    
     // Inicializa a Matriz de LEDs WS2812
     PIO pio = pio0;
     set_sys_clock_khz(128000, false);
@@ -63,11 +63,13 @@ int main() {
     // Exibe a mensagem inicial com regras
     mostrar_mensagem_inicial();
     
-    // Loop principal: a cada 30 segundos é iniciada uma nova leitura
+    // Loop principal: a cada 30 segundos inicia uma nova leitura
     while (true) {
         uint32_t ciclo_inicio = to_ms_since_boot(get_absolute_time());
         
-        // Exibe mensagem de início de leitura
+        // Ativa o buzzer para indicar o início da leitura (toca 1 kHz)
+        play_tone(1000);
+        
         ssd1306_fill(&display, false);
         ssd1306_draw_string(&display, "Lendo...", 10, 10);
         ssd1306_send_data(&display);
@@ -80,7 +82,7 @@ int main() {
         
         // Loop de leitura por 10 segundos
         while (tempo_atual - tempo_inicial < 10000) {
-            valor_adc_y = ler_adc(0);  // GP26 (ADC canal 0)
+            valor_adc_y = ler_adc(0);  // Lê o ADC do eixo Y (GP26)
             
             // Exibe o valor lido no display
             char buffer[50];
@@ -89,7 +91,6 @@ int main() {
             ssd1306_draw_string(&display, buffer, 0, 10);
             ssd1306_send_data(&display);
             
-            // Se o valor ultrapassar o threshold, incrementa o contador
             if (valor_adc_y > THRESHOLD_ALCOOL) {
                 contagem_alcool++;
             }
@@ -98,19 +99,22 @@ int main() {
             tempo_atual = to_ms_since_boot(get_absolute_time());
         }
         
-        // Exibe o resultado da leitura e aguarda alguns segundos para visualização
+        // Desliga o buzzer após a leitura
+        stop_buzzer();
+        
+        // Exibe o resultado da leitura e animação na matriz de LEDs
         ssd1306_fill(&display, false);
         if (contagem_alcool > 0) {
             ssd1306_draw_string(&display, "Alcool detectado!", 0, 10);
             alterar_estado_pwm(false);  // Exemplo: desabilita PWM (bloqueia o carro)
-            exibir_letra_x(pio, sm);    // Exibe a letra X em vermelho na matriz LED
+            exibir_letra_x(pio, sm);      // Exibe a letra X (em vermelho) na matriz LED
         } else {
             ssd1306_draw_string(&display, "Sem alcool.", 0, 10);
             alterar_estado_pwm(true);   // Mantém o PWM ativo
-            exibir_letra_o(pio, sm);    // Exibe a letra O em verde na matriz LED
+            exibir_letra_o(pio, sm);      // Exibe a letra O (em verde) na matriz LED
         }
         ssd1306_send_data(&display);
-        sleep_ms(3000);  // Permite visualização do resultado por 3 segundos
+        sleep_ms(3000);  // Resultado visível por 3 segundos
         
         // Calcula o tempo gasto no ciclo
         uint32_t ciclo_fim = to_ms_since_boot(get_absolute_time());

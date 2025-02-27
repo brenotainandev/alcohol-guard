@@ -1,7 +1,6 @@
 #include "../includes/entradas.h"
 #include "../includes/pwm.h"
 
-#define BOTAO_A 5
 #define BOTAO_JOYSTICK 22
 #define LED_VERDE 11
 
